@@ -1,9 +1,12 @@
 // ==UserScript==
 // @name         Bangumi Forum Enhance Alpha
-// @version      0.0.1
+// @version      0.0.2
 // @description  I know your (black) history!
-// @author       gyakkun
-// @include     /^https?://(bgm\.tv|chii\.in|bangumi\.tv)/(group|subject)/topic/*
+// @updateURL https://openuserjs.org/meta/gyakkun/Bangumi_Forum_Enhance_Alpha.meta.js
+// @downloadURL https://openuserjs.org/install/gyakkun/Bangumi_Forum_Enhance_Alpha.user.js
+// @copyright gyakkun
+// @include     /^https?:\/\/(bgm\.tv|chii\.in|bangumi\.tv)\/(group|subject)\/topic\/*/
+// @license MIT
 // ==/UserScript==
 
 (function () {
@@ -149,11 +152,11 @@
     }
 
     function drawRecentPost(postBriefObj) {
-        return `<a class="l inner" href="/group/topic/${postBriefObj.mid}#post_${postBriefObj.pid}">${postBriefObj.title} <small class="grey">${formatDateline(postBriefObj.dateline)}</small></a>`
+        return `<a class="l inner" href="/${SPACE_TYPE}/topic/${postBriefObj.mid}#post_${postBriefObj.pid}">${postBriefObj.title} <small class="grey">${formatDateline(postBriefObj.dateline)}</small></a>`
     }
 
     function drawRecentTopic(topicBriefObj) {
-        return `<a class="l inner" href="/group/topic/${topicBriefObj.id}">${topicBriefObj.title} <small class="grey">${formatDateline(topicBriefObj.dateline)}</small></a>`
+        return `<a class="l inner" href="/${SPACE_TYPE}/topic/${topicBriefObj.id}">${topicBriefObj.title} <small class="grey">${formatDateline(topicBriefObj.dateline)}</small></a>`
     }
 
     function drawSpaceStatData(spaceStatObj) {
@@ -163,7 +166,7 @@
         let postDrawing = drawPostStatData(post)
         return `
             <div>
-                <a href="/group/${name}" class="l">${displayName}</a>
+                <a href="/${SPACE_TYPE}/${name}" class="l">${displayName}</a>
                 <span class="tip">帖子:</span>
                     ${postDrawing}
                 <span class="tip">话题:</span>
@@ -250,7 +253,12 @@
                         $(`#ba-feh-wrapper-${pid}-${username}`).show()
                     } else {
                         let userStatObj = await getUserStatObj(username)
-                        $("#likes_grid_" + pid).after(drawWrapper(username, pid, userStatObj))
+                        let baFehWrapper = drawWrapper(username, pid, userStatObj)
+                        if ($("#likes_grid_" + pid).length > 0) {
+                            $("#likes_grid_" + pid).after(baFehWrapper)
+                        } else {
+                            $(`#post_${pid} > div.inner > div > div.message`).append(baFehWrapper)
+                        }
                     }
                 } else {
                     that.html("▼")
