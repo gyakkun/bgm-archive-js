@@ -40,39 +40,67 @@
         "subject": "条目讨论统计"
     };
 
-    const getSpaceType = () => {
+    function getSpaceType() {
         let path = document.URL.replace("https://" + document.domain, "");
         const s = path.split("/");
         return s[1];
     }
 
-    const getPostDivList = () => {
+
+    function getPostDivList() {
         return $("div[id^='post_'")
     }
 
-    const getUsernameAndPidOfPostDiv = (postDiv) => {
+    function getUsernameAndPidOfPostDiv(postDiv) {
         return {
             username: postDiv.attr("data-item-user"),
             pid: parseInt(postDiv.attr("id").substr("post_".length))
         }
     }
 
-    const getAllUsername = () =>{
+    function getAllUsername() {
         var set = {}
-        getPostDivList.each(function(){ set[$(this).attr("data-item-user")] = null})
+        getPostDivList.each(function () { set[$(this).attr("data-item-user")] = null })
         return Object.keys(set)
     }
 
-    const drawActionButton = (username, postId) =>{
+    function drawActionButton(username, postId) {
         return `
         <div class="action">
-            <a class="icon" title="小组统计">
-                <span class="ico" id="ba-feh-action-btn-${postId}-${username}">▲</span><span class="title">小组统计</span>
+            <a href="javascript:void(0);" class="icon" title="小组统计">
+                <span data-dropped="false" class="ico" id="ba-feh-action-btn-${postId}-${username}" style="text-indent: 0px">▼</span><span class="title">小组统计</span>
             </a>
         </div>
         `
     }
 
+    function attachActionButton() {
+        getPostDivList().each(function () {
+            let { username, pid: postId } = getUsernameAndPidOfPostDiv($(this))
+            $(this).find("div.post_actions.re_info > div:nth-child(1)").first().after(
+                drawActionButton(username, postId)
+            )
+        })
+    }
+
+    function registerOnClickEvent() {
+        $("span[id^='ba-feh-action-btn-'").each(function () {
+            let that = $(this)
+            that.click(() => {
+                alert("hi");
+                if (that.attr("data-dropped") === "false") {
+                    that.html("▲")
+                    that.attr("data-dropped", "true")
+                } else {
+                    that.html("▼")
+                    that.attr("data-dropped", "true")
+                }
+            })
+                
+        })
+    }
+    attachActionButton()
+    registerOnClickEvent()
 })();
 
 
