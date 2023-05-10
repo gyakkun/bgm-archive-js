@@ -81,7 +81,7 @@
         `
     }
 
-    function drawTopicStatData(total, deleted, silent, closed, reopen){
+    function drawTopicStatData(total, deleted, silent, closed, reopen) {
         return `
             <small class="grey">
                 ${total}(T)
@@ -91,6 +91,39 @@
                 ${reopen > 0 ? `/<span style="color: rgb(53, 188, 134);">${reopen}(D)</span>` : ""}
             </small>
         `
+    }
+
+    function drawFaceGrid(faceMap) {
+        let extracted = extractSortedListOfFace(faceMap)
+        if (extracted.length == 0) {
+            return `<span>N/A</span>`
+        }
+        let inner = ""
+        for (p of extracted) {
+            let faceKey = p[0]
+            let faceCount = p[1]
+            let facePicValue = FACE_KEY_GIF_MAPPING[faceKey]
+            inner += `
+                <a class="item" data-like-value="${faceKey}">
+                    <span class="emoji" style="background-image: url('/img/smiles/tv/${facePicValue}.gif');"></span>
+                    <span class="num">${faceCount}</span>
+                </a>
+            `
+        }
+        return `
+            <div class="likes_grid">
+                ${inner}
+            </div>
+            `
+    }
+
+    function extractSortedListOfFace(faceMap) {
+        let res = [] // 2d arr
+        for (key in faceMap) {
+            res.push([key, faceMap[key]])
+        }
+        res.sort((a, b) => { b[1] - a[1] })
+        return res
     }
 
     function attachActionButton() {
