@@ -51,7 +51,7 @@
     function getUsernameAndPidOfPostDiv(postDiv) {
         return {
             username: postDiv.attr("data-item-user"),
-            postId: parseInt(postDiv.attr("id").substr("post_".length))
+            postId: parseInt(postDiv.attr("id").substring("post_".length))
         }
     }
 
@@ -59,6 +59,37 @@
         var set = {}
         getPostDivList.each(function () { set[$(this).attr("data-item-user")] = null })
         return Object.keys(set)
+    }
+
+    function drawWrapper(username, postId, userStatObj) {
+        return `
+            <div id="ba-feh-wrapper-${postId}-${username}" class="subject_tag_section" style="margin: 1em;">
+                <div>
+                    <div id="ba-feh-post-stat-${postId}-${username}">
+                        <span class="tip">帖子统计:</span>
+                        ${drawPostStatData(userStatObj.postStat)}
+                    </div>
+                    <div id="ba-feh-topic-stat-${postId}-${username}">
+                        <span class="tip">话题统计:</span>
+                        ${drawTopicStatData(userStatObj.topicStat)}
+                    </div>
+                    <div id="ba-feh-like-stat-${postId}-${username}">
+                        <span class="tip">收到贴贴:</span>
+                        ${drawFaceGrid(userStatObj.likeStat)}
+                    </div>
+                    <div id="ba-feh-space-stat-${postId}-${username}">
+                        <span class="tip">空间统计:</span>
+                        ${drawSpaceStatSection(userStatObj.spaceStat)}
+                    </div>
+                    <div id="ba-feh-recent-activities-${postId}-${username}">
+                        <span>最近发表:</span>
+                        ${drawRecentTopicSection(userStatObj.recentActivities.topic)}
+                        <span>最近回复:</span>
+                        ${drawRecentPostSection(userStatObj.recentActivities.post)}
+                    </div>
+                </div>
+            </div>
+        `
     }
 
     function drawActionButton(username, postId) {
@@ -71,24 +102,93 @@
         `
     }
 
-    function drawPostStatData(total, deleted, adminDeleted) {
+    function drawRecentPostSection(recentPostObjList) {
+        if (recentPostObjList.length == 0) {
+            return `<span>N/A</span>`
+        }
+        let inner = ""
+        for (p of recentPostObjList) {
+            inner += drawRecentPost(p)
+        }
+        return `
+            <div class="subject_tag_section">
+                ${inner}
+            </div>
+        `
+    }
+
+    function drawRecentTopicSection(recentTopicObjList) {
+        if (recentTopicObjList.length == 0) {
+            return `<span>N/A</span>`
+        }
+        let inner = ""
+        for (t of recentTopicObjList) {
+            inner += drawRecentTopic(t)
+        }
+        return `
+            <div class="subject_tag_section">
+                ${inner}
+            </div>
+        `
+    }
+
+    function drawSpaceStatSection(spaceStatObjList) {
+        if (spaceStatObjList.length == 0) {
+            return `<span>N/A</span>`
+        }
+        let inner = ""
+        for (s of spaceStatObjList) {
+            inner += drawSpaceStatData(s)
+        }
+        return `
+            <div class="subject_tag_section">
+                ${inner}
+            </div>
+        `
+    }
+
+    function drawRecentPost(postBriefObj) {
+        return `<a class="l inner" href="/group/topic/${postBriefObj.mid}/${postBriefObj.pid}">${postBriefObj.title} <small class="grey">${formatDateline(postBriefObj.dateline)}</small></a>`
+    }
+
+    function drawRecentTopic(topicBriefObj) {
+        return `<a class="l inner" href="/group/topic/${topicBriefObj.id}">${topicBriefObj.title} <small class="grey">${formatDateline(topicBriefObj.dateline)}</small></a>`
+    }
+
+    function drawSpaceStatData(spaceStatObj) {
+        let { name, displayName, topic, post } = spaceStatObj
+        displayName = displayName.substring(0, Math.min(10, displayName.length))
+        let topicDrawing = drawTopicStatData(topic)
+        let postDrawing = drawPostStatData(post)
+        return `
+            <div>
+                <a href="/group/${name}" class="l">${displayName}</a>
+                <span class="tip">帖子:</span>
+                    ${postDrawing}
+                <span class="tip">话题:</span>
+                    ${topicDrawing}
+            </div>
+        `
+    }
+
+    function drawPostStatData(postStatObj) {
         return `
             <small class="grey">
-                ${total}(T)
-                ${deleted > 0 ? `/<span style="color: red;">${deleted}(D)</span>` : ""}
-                ${adminDeleted > 0 ? `/<span style="color: yellowgreen;">${adminDeleted}(AD)</span>` : ""}
+                ${postStatObj.total}(T)
+                ${postStatObj.deleted > 0 ? `/<span style="color: red;">${postStatObj.deleted}(D)</span>` : ""}
+                ${postStatObj.adminDeleted > 0 ? `/<span style="color: yellowgreen;">${postStatObj.adminDeleted}(AD)</span>` : ""}
             </small>
         `
     }
 
-    function drawTopicStatData(total, deleted, silent, closed, reopen) {
+    function drawTopicStatData(topicStatObj) {
         return `
             <small class="grey">
-                ${total}(T)
-                ${deleted > 0 ? `/<span style="color: red;">${deleted}(D)</span>` : ""}
-                ${silent > 0 ? `/<span style="color: rgb(255, 145, 0);;">${silent}(S)</span>` : ""}
-                ${closed > 0 ? `/<span style="color: rgb(164, 75, 253);">${closed}(D)</span>` : ""}
-                ${reopen > 0 ? `/<span style="color: rgb(53, 188, 134);">${reopen}(D)</span>` : ""}
+                ${topicStatObj.total}(T)
+                ${topicStatObj.deleted > 0 ? `/<span style="color: red;">${topicStatObj.deleted}(D)</span>` : ""}
+                ${topicStatObj.silent > 0 ? `/<span style="color: rgb(255, 145, 0);;">${topicStatObj.silent}(S)</span>` : ""}
+                ${topicStatObj.closed > 0 ? `/<span style="color: rgb(164, 75, 253);">${topicStatObj.closed}(D)</span>` : ""}
+                ${topicStatObj.reopen > 0 ? `/<span style="color: rgb(53, 188, 134);">${topicStatObj.reopen}(D)</span>` : ""}
             </small>
         `
     }
@@ -150,6 +250,12 @@
             })
 
         })
+    }
+
+    function formatDateline(dateline /* epoch seconds */) {
+        let d = new Date(dateline * 1000)
+        let [year, month, day] = d.toISOString().split("T")[0].split("-")
+        return `${year.substring(2)}${month}${day}`
     }
     attachActionButton()
     registerOnClickEvent()
