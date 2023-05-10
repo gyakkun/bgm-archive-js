@@ -7,7 +7,8 @@
 // ==/UserScript==
 
 (function () {
-
+    const BA_API_URL = "https://bgm.nyamori.moe/forum-enhance/query"
+    const BA_FEH_CACHE_PREFIX = "ba_feh_" + SPACE_TYPE + "_" // + username
     const FACE_KEY_GIF_MAPPING = {
         0: 44,
         140: 101,
@@ -32,18 +33,14 @@
         137: 98,
         132: 93
     }
-    const BA_API_URL = "https://bgm.nyamori.moe/forum-enhance/query"
     const SPACE_TYPE = getSpaceType();
-    const BA_FEH_CACHE_PREFIX = "ba_feh_" + SPACE_TYPE + "_" // + username
     const SPACE_ACTIO_BUTTON_WORDING = {
-        "group": "小组讨论统计",
-        "subject": "条目讨论统计"
+        "group": "小组统计",
+        "subject": "条目统计"
     };
 
     function getSpaceType() {
-        let path = document.URL.replace("https://" + document.domain, "");
-        const s = path.split("/");
-        return s[1];
+        return document.location.pathname.split("/")[1];
     }
 
 
@@ -54,7 +51,7 @@
     function getUsernameAndPidOfPostDiv(postDiv) {
         return {
             username: postDiv.attr("data-item-user"),
-            pid: parseInt(postDiv.attr("id").substr("post_".length))
+            postId: parseInt(postDiv.attr("id").substr("post_".length))
         }
     }
 
@@ -67,16 +64,38 @@
     function drawActionButton(username, postId) {
         return `
         <div class="action">
-            <a href="javascript:void(0);" class="icon" title="小组统计">
-                <span data-dropped="false" class="ico" id="ba-feh-action-btn-${postId}-${username}" style="text-indent: 0px">▼</span><span class="title">小组统计</span>
+            <a href="javascript:void(0);" class="icon" title="${SPACE_ACTIO_BUTTON_WORDING}">
+                <span data-dropped="false" class="ico" id="ba-feh-action-btn-${postId}-${username}" style="text-indent: 0px">▼</span><span class="title">${SPACE_ACTIO_BUTTON_WORDING}</span>
             </a>
         </div>
         `
     }
 
+    function drawPostStatData(total, deleted, adminDeleted) {
+        return `
+            <small class="grey">
+                ${total}(T)
+                ${deleted > 0 ? `/<span style="color: red;">${deleted}(D)</span>` : ""}
+                ${adminDeleted > 0 ? `/<span style="color: yellowgreen;">${adminDeleted}(AD)</span>` : ""}
+            </small>
+        `
+    }
+
+    function drawTopicStatData(total, deleted, silent, closed, reopen){
+        return `
+            <small class="grey">
+                ${total}(T)
+                ${deleted > 0 ? `/<span style="color: red;">${deleted}(D)</span>` : ""}
+                ${silent > 0 ? `/<span style="color: rgb(255, 145, 0);;">${silent}(S)</span>` : ""}
+                ${closed > 0 ? `/<span style="color: rgb(164, 75, 253);">${closed}(D)</span>` : ""}
+                ${reopen > 0 ? `/<span style="color: rgb(53, 188, 134);">${reopen}(D)</span>` : ""}
+            </small>
+        `
+    }
+
     function attachActionButton() {
         getPostDivList().each(function () {
-            let { username, pid: postId } = getUsernameAndPidOfPostDiv($(this))
+            let { username, postId } = getUsernameAndPidOfPostDiv($(this))
             $(this).find("div.post_actions.re_info > div:nth-child(1)").first().after(
                 drawActionButton(username, postId)
             )
@@ -96,7 +115,7 @@
                     that.attr("data-dropped", "true")
                 }
             })
-                
+
         })
     }
     attachActionButton()
