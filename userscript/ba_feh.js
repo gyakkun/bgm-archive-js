@@ -1,25 +1,87 @@
 // ==UserScript==
-// @name         prevPosts
-// @version      0.1
-// @description  show last 10 topic posts of a postor
-// @author       徒手开根号二
+// @name         Bangumi Forum Enhance Alpha
+// @version      0.0.1
+// @description  I know your (black) history!
+// @author       gyakkun
 // @include     /^https?://(bgm\.tv|chii\.in|bangumi\.tv)/(group|subject)/topic/*
-// @namespace https://greasyfork.org/users/1065441
 // ==/UserScript==
 
+(function () {
 
+    const FACE_KEY_GIF_MAPPING = {
+        0: 44,
+        140: 101,
+        80: 41,
+        54: 15,
+        85: 46,
+        104: 65,
+        88: 49,
+        62: 23,
+        79: 40,
+        53: 14,
+        122: 83,
+        92: 53,
+        118: 79,
+        141: 102,
+        90: 51,
+        76: 37,
+        60: 21,
+        128: 89,
+        47: 08,
+        68: 29,
+        137: 98,
+        132: 93
+    }
+    const BA_API_URL = "https://bgm.nyamori.moe/forum-enhance/query"
+    const SPACE_TYPE = getSpaceType();
+    const BA_FEH_CACHE_PREFIX = "ba_feh_" + SPACE_TYPE + "_" // + username
+    const SPACE_ACTIO_BUTTON_WORDING = {
+        "group": "小组讨论统计",
+        "subject": "条目讨论统计"
+    };
+
+    const getSpaceType = () => {
+        let path = document.URL.replace("https://" + document.domain, "");
+        const s = path.split("/");
+        return s[1];
+    }
+
+    const getPostDivList = () => {
+        return $("div[id^='post_'")
+    }
+
+    const getUsernameAndPidOfPostDiv = (postDiv) => {
+        return {
+            username: postDiv.attr("data-item-user"),
+            pid: parseInt(postDiv.attr("id").substr("post_".length))
+        }
+    }
+
+    const getAllUsername = () =>{
+        var set = {}
+        getPostDivList.each(function(){ set[$(this).attr("data-item-user")] = null})
+        return Object.keys(set)
+    }
+
+    const drawActionButton = (username, postId) =>{
+        return `
+        <div class="action">
+            <a class="icon" title="小组统计">
+                <span class="ico" id="ba-feh-action-btn-${postId}-${username}">▲</span><span class="title">小组统计</span>
+            </a>
+        </div>
+        `
+    }
+
+})();
 
 
 
 
 const API_URL = "aHR0cHM6Ly9lYXN0YXNpYS5henVyZS5kYXRhLm1vbmdvZGItYXBpLmNvbS9hcHAvcHJldnBvc3QtanB6cW0vZW5kcG9pbnQvaGlzdG9yeT8="
 const PAYLOAD = "eyJhcGkta2V5IiA6ICJNZjQ3eDBsMmtUajgxYVJ6QlNlelNGbHpZajVkVGdtNTV2cEFUalV5akFUeWRWRXJoQ2RjM3l3VnNock5SNEgwIiB9";
-const TYPE = getType();
-function getType() {
-    let path = document.URL.replace("https://" + document.domain, "");
-    const s = path.split("/");
-    return s[1];
-}
+
+
 const PATH_PREFIX = "/" + TYPE + "/topic/";
 const ANCHOR = "div.postTopic";
 
@@ -33,10 +95,7 @@ function getPostID() {
     return s[1] + "/topic/" + s[3];
 }
 //
-const WORD = {
-    "group": "小组话题",
-    "subject": "条目讨论"
-};
+
 const STORAGE_KEY_PREFIX = TYPE + "_history_";
 const GREET = posterName + " 最近发表的其他" + WORD[TYPE];
 const GREET_fold = GREET + "&nbsp;&nbsp;► ";

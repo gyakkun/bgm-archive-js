@@ -2,30 +2,30 @@
 
 <body>
 
-    <div id="ba-feh-wrapper-${username}">
+    <div id="ba-feh-wrapper-${postId}-${username}" class="subject_tag_section" style="margin: 1em;">
 
         <div>
-            <div id="ba-feh-post-stat-${username}">
+            <div id="ba-feh-post-stat-${postId}-${username}">
                 <span class="tip">帖子统计:</span>
                 <small class="grey">
                     100(T)
                     /<span style="color: red;">3(D)</span>
-                    /<span style="color: yellowgreen;">3(D)</span>
+                    /<span style="color: yellowgreen;">3(AD)</span>
                 </small>
             </div>
-            <div id="ba-feh-topic-stat-${username}">
+            <div id="ba-feh-topic-stat-${postId}-${username}">
                 <span class="tip">主题统计:</span>
                 <small class="grey">
                     100(T)
                     /<span style="color: red;">3(D)</span>
                     /<span style="color: rgb(255, 145, 0);">3(S)</span>
-                    /<span style="color: rgb(128, 0, 255);">3(C)</span>
+                    /<span style="color: rgb(164, 75, 253);">3(C)</span>
                     /<span style="color: rgb(53, 188, 134);">3(R)</span>
                 </small>
             </div>
-            <div id="ba-feh-like-stat-${username}">
+            <div id="ba-feh-like-stat-${postId}-${username}">
                 <span class="tip">收到贴贴统计:</span>
-                <div class="likes_grid" id="likes_grid_1304075">
+                <div class="likes_grid">
                     <a class="item" data-like-value="${facePicKey}">
                         <span class="emoji" style="background-image: url('/img/smiles/tv/${facePicValue}.gif');"></span>
                         <span class="num">${num}</span>
@@ -38,49 +38,52 @@
                     </a>
                 </div>
             </div>
-            <div id="ba-feh-space-stat-${username}">
+            <div id="ba-feh-space-stat-${postId}-${username}">
                 <span class="tip">空间统计:</span>
-                <div>
-                    <!-- 超长的小组名考虑截断到第六个字符 -->
-                    <span a="/group/${spaceName}" class="l">茶话会</span>
-                    <span class="tip">帖子统计:</span>
-                    <small class="grey">100
-                        /<span style="color: red;">3(D)</span>
-                        /<span style="color: yellowgreen;">3(D)</span>
-                    </small>
-                    <span class="tip">主题统计:</span>
-                    <small class="grey">100
-                        /<span style="color: red;">3(D)</span>
-                        /<span style="color: rgb(255, 145, 0);">3(S)</span>
-                        /<span style="color: rgb(128, 0, 255);">3(C)</span>
-                        /<span style="color: rgb(53, 188, 134);">3(R)</span>
-                    </small>
-                </div>
-                <div>
-                    <!-- 超长的小组名考虑截断到第六个字符 -->
-                    <span a="/group/${spaceName}" class="l">技术宅</span>
-                    <span class="tip">帖子统计:</span>
-                    <small class="grey">100
-                        /<span style="color: red;">3(D)</span>
-                        /<span style="color: yellowgreen;">3(D)</span>
-                    </small>
-                    <span class="tip">主题统计:</span>
-                    <small class="grey">100
-                        /<span style="color: red;">3(D)</span>
-                        /<span style="color: rgb(255, 145, 0);">3(S)</span>
-                        /<span style="color: rgb(128, 0, 255);">3(C)</span>
-                        /<span style="color: rgb(53, 188, 134);">3(R)</span>
-                    </small>
+                <div style="margin: left 2em;">
+                    <div>
+                        <!-- 超长的小组名考虑截断到第六个字符 -->
+                        <span a="/group/${spaceName}" class="l">茶话会</span>
+                        <span class="tip">帖子:</span>
+                        <small class="grey">100
+                            /<span style="color: red;">3(D)</span>
+                            /<span style="color: yellowgreen;">3(AD)</span>
+                        </small>
+                        <span class="tip">主题:</span>
+                        <small class="grey">100
+                            /<span style="color: red;">3(D)</span>
+                            /<span style="color: rgb(255, 145, 0);">3(S)</span>
+                            /<span style="color: rgb(128, 0, 255);">3(C)</span>
+                            /<span style="color: rgb(53, 188, 134);">3(R)</span>
+                        </small>
+                    </div>
+                    <div>
+                        <!-- 超长的小组名考虑截断到第六个字符 -->
+                        <span a="/group/${spaceName}" class="l">技术宅</span>
+                        <span class="tip">帖子:</span>
+                        <small class="grey">100
+                            /<span style="color: red;">3(D)</span>
+                            /<span style="color: yellowgreen;">3(AD)</span>
+                        </small>
+                        <span class="tip">主题:</span>
+                        <small class="grey">100
+                            /<span style="color: red;">3(D)</span>
+                            /<span style="color: rgb(255, 145, 0);">3(S)</span>
+                            /<span style="color: rgb(128, 0, 255);">3(C)</span>
+                            /<span style="color: rgb(53, 188, 134);">3(R)</span>
+                        </small>
+                    </div>
                 </div>
             </div>
-            <div id="ba-feh-recent-activities-${username}">
+            <div id="ba-feh-recent-activities-${postId}-${username}">
+
+                <span>最近发表:</span>
                 <div class="subject_tag_section">
-                    <span>最近发表:</span>
-                    <a class="l inner" href="/group/1">第一帖</a>
+                    <a class="l inner" href="/group/topic/1">第一帖</a>
                 </div>
+                <span>最近回复:</span>
                 <div class="subject_tag_section">
-                    <span>最近回复:</span>
-                    <a class="l inner" href="/group/1#post_23">第一帖</a>
+                    <a class="l inner" href="/group/topic/1#post_23">第一帖</a>
                 </div>
             </div>
         </div>
@@ -89,9 +92,8 @@
 
     <!-- 按扭 #post_2328792 > div.post_actions.re_info -->
     <div class="action">
-        <a href="javascript:void(0);" onclick="subReply('group', 381522, 2328792, 0, 205602, 550799, 0)" class="icon"
-            title="小组统计">
-            <span class="ico">▲</span><span class="title">小组统计</span>
+        <a class="icon" title="小组统计">
+            <span class="ico" id="ba-feh-action-btn-${postId}-${username}">▲</span><span class="title">小组统计</span>
         </a>
     </div>
 
