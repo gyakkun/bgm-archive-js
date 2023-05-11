@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Bangumi Forum Enhance Alpha
-// @version      0.0.2
+// @version      0.0.4
 // @description  I know your (black) history!
 // @updateURL https://openuserjs.org/meta/gyakkun/Bangumi_Forum_Enhance_Alpha.meta.js
 // @downloadURL https://openuserjs.org/install/gyakkun/Bangumi_Forum_Enhance_Alpha.user.js
@@ -10,7 +10,8 @@
 // ==/UserScript==
 
 (function () {
-    const SPACE_TYPE = getSpaceType();
+    const INDEXED_DB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB
+    const SPACE_TYPE = document.location.pathname.split("/")[1]
     const BA_API_URL = "https://bgm.nyamori.moe/forum-enhance/query"
     const BA_FEH_CACHE_PREFIX = "ba_feh_" + SPACE_TYPE + "_" // + username
     const FACE_KEY_GIF_MAPPING = {
@@ -41,10 +42,6 @@
         "group": "小组统计",
         "subject": "条目统计"
     };
-
-    function getSpaceType() {
-        return document.location.pathname.split("/")[1];
-    }
 
 
     function getPostDivList() {
@@ -271,10 +268,12 @@
     }
 
     async function getUserStatObj(username) {
-        if (doesThisUserHasCache(username)) return getCacheByUsername(username)
+        if (await areYouCached(username)) {
+            return (await getCacheByUsername(username))
+        }
         let allUsernameSet = getAllUsernameSet()
         for (un in allUsernameSet) {
-            if (doesThisUserHasCache(un))
+            if (await areYouCached(un))
                 delete allUsernameSet[un]
         }
         let usernameListToFetch = Object.keys(allUsernameSet)
@@ -284,15 +283,31 @@
         }).then(d => d.json())
             .catch(e => console.error("Exception when fetching data: " + e, e))
         for (u in fetched) {
-            sessionStorage[`${BA_FEH_CACHE_PREFIX}${u}`] = JSON.stringify(fetched[u])
+            await storeInCache(u, fetched[u])
         }
-        return getCacheByUsername(username)
+        return await getCacheByUsername(username)
     }
 
+    async function storeInCache(username, userStatObj) {
+        let ck = `${BA_FEH_CACHE_PREFIX}${username}`
+        if (!!INDEXED_DB) {
+            await getIndexedDBManager().setItem(ck, userStatObj)
+        } else {
+            sessionStorage[ck] = JSON.stringify(userStatObj)
+        }
+    }
 
-    function doesThisUserHasCache(username) {
-        if (!!sessionStorage[`${BA_FEH_CACHE_PREFIX}${username}`]) {
-            let statObj = JSON.parse(sessionStorage[`${BA_FEH_CACHE_PREFIX}${username}`])
+    async function areYouCached(username) {
+        let ck = `${BA_FEH_CACHE_PREFIX}${username}`
+        if (!!INDEXED_DB) {
+            let statObj = (await getIndexedDBManager().getItem(ck))
+            if (!!!statObj) return false
+            if ((new Date().valueOf()) > (statObj?._meta?.expiredAt ?? (new Date().valueOf()))) {
+                return false
+            }
+            return true
+        } else if (!!sessionStorage[ck]) {
+            let statObj = JSON.parse(sessionStorage[ck])
             if ((new Date().valueOf()) > (statObj?._meta?.expiredAt ?? (new Date().valueOf()))) {
                 return false
             }
@@ -301,8 +316,12 @@
         return false
     }
 
-    function getCacheByUsername(username) {
-        return JSON.parse(sessionStorage[`${BA_FEH_CACHE_PREFIX}${username}`])
+    async function getCacheByUsername(username) {
+        let ck = `${BA_FEH_CACHE_PREFIX}${username}`
+        if (!!INDEXED_DB) {
+            return (await getIndexedDBManager().getItem(ck))
+        }
+        return JSON.parse(sessionStorage[ck])
     }
 
     function formatDateline(dateline /* epoch seconds */) {
@@ -310,6 +329,76 @@
         let [year, month, day] = d.toISOString().split("T")[0].split("-")
         return `${year.substring(2)}${month}${day}`
     }
+
+    // Thank you https://juejin.cn/post/7228480373306818619
+    function getIndexedDBManager() {
+        const DATA_BASE_NAME = 'BA_FEH'
+        const TABLE_NAME = 'CACHE'
+        const UNIQ_KEY = 'BA_FEH_CACHE_KEY'
+
+        let dataBase = null
+        function getDataBase() {
+            if (dataBase) {
+                return dataBase
+            }
+            return new Promise(resolve => {
+                const request = indexedDB.open(DATA_BASE_NAME)
+                request.onupgradeneeded = e => {
+                    const db = e.target.result
+                    if (!db.objectStoreNames.contains(TABLE_NAME)) {
+                        db.createObjectStore(TABLE_NAME, { keyPath: UNIQ_KEY })
+                    }
+                }
+                request.onsuccess = e => {
+                    const db = e.target.result
+                    dataBase = db
+                    resolve(db)
+                }
+            })
+        }
+        return {
+            async setItem(key, value) {
+                const dataBase = await getDataBase()
+                return new Promise(resolve => {
+                    const request = dataBase.transaction(TABLE_NAME, 'readwrite')
+                        .objectStore(TABLE_NAME)
+                        .put({ data: value, [UNIQ_KEY]: key })
+                    request.onsuccess = resolve('success')
+                })
+            },
+            async getItem(key) {
+                const dataBase = await getDataBase()
+                return new Promise(resolve => {
+                    const request = dataBase.transaction(TABLE_NAME)
+                        .objectStore(TABLE_NAME)
+                        .get(key)
+                    request.onsuccess = () => {
+                        resolve(request.result?.data)
+                    }
+                })
+            },
+            async keys() {
+                const keys = {} // use as set
+                const dataBase = await getDataBase()
+                return new Promise(resolve => {
+                    const request = dataBase.transaction(TABLE_NAME)
+                        .objectStore(TABLE_NAME)
+                        .openCursor()
+
+                    request.onsuccess = () => {
+                        const cursor = request.result;
+                        if (cursor) {
+                            cursor.continue()
+                            keys[cursor.value[UNIQ_KEY]] = true
+                        } else {
+                            resolve(keys)
+                        }
+                    }
+                })
+            }
+        }
+    }
+
     attachActionButton()
     registerOnClickEvent()
 
