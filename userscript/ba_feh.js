@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Bangumi Forum Enhance Alpha
-// @version      0.0.4
+// @version      0.0.5
 // @description  I know your (black) history!
 // @updateURL https://openuserjs.org/meta/gyakkun/Bangumi_Forum_Enhance_Alpha.meta.js
 // @downloadURL https://openuserjs.org/install/gyakkun/Bangumi_Forum_Enhance_Alpha.user.js
@@ -12,7 +12,7 @@
 (function () {
     const INDEXED_DB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB
     const SPACE_TYPE = document.location.pathname.split("/")[1]
-    const BA_API_URL = "https://bgm.nyamori.moe/forum-enhance/query"
+    const BA_FEH_API_URL = "https://bgm.nyamori.moe/forum-enhance/query"
     const BA_FEH_CACHE_PREFIX = "ba_feh_" + SPACE_TYPE + "_" // + username
     const FACE_KEY_GIF_MAPPING = {
         0: "44",
@@ -244,8 +244,7 @@
             that.click(async () => {
                 // alert("hi");
                 if (that.attr("data-dropped") === "false") {
-                    that.html("▲")
-                    that.attr("data-dropped", "true")
+                    that.html("*")
                     if ($(`#ba-feh-wrapper-${pid}-${username}`).length > 0) {
                         $(`#ba-feh-wrapper-${pid}-${username}`).show()
                     } else {
@@ -253,17 +252,22 @@
                         let baFehWrapper = drawWrapper(username, pid, userStatObj)
                         if ($("#likes_grid_" + pid).length > 0) {
                             $("#likes_grid_" + pid).after(baFehWrapper)
-                        } else {
+                        } else if ($(`#post_${pid} > div.inner > div > div.message`).length > 0) {
                             $(`#post_${pid} > div.inner > div > div.message`).append(baFehWrapper)
+                        } else if ($(`#post_${pid} > div.inner > div.cmt_sub_content`).length > 0) {
+                            $(`#post_${pid} > div.inner > div.cmt_sub_content`).after(baFehWrapper)
+                        } else {
+                            console.error(`[BA_FEH] No element to mount ba_feh wrapper for postId-${pid}!`)
                         }
                     }
+                    that.html("▲")
+                    that.attr("data-dropped", "true")
                 } else {
                     that.html("▼")
                     that.attr("data-dropped", "false")
                     $(`#ba-feh-wrapper-${pid}-${username}`).hide()
                 }
             })
-
         })
     }
 
@@ -277,11 +281,12 @@
                 delete allUsernameSet[un]
         }
         let usernameListToFetch = Object.keys(allUsernameSet)
-        let fetched = await fetch(BA_API_URL, {
+        console.debug(`[BA_FEH] Fetching: ${JSON.stringify(usernameListToFetch)}`)
+        let fetched = await fetch(BA_FEH_API_URL, {
             body: JSON.stringify({ users: usernameListToFetch, type: SPACE_TYPE }),
             method: "POST"
         }).then(d => d.json())
-            .catch(e => console.error("Exception when fetching data: " + e, e))
+            .catch(e => console.error("[BA_FEH] Exception when fetching data: " + e, e))
         for (u in fetched) {
             await storeInCache(u, fetched[u])
         }
@@ -302,15 +307,16 @@
         if (!!INDEXED_DB) {
             let statObj = (await getIndexedDBManager().getItem(ck))
             if (!!!statObj) return false
-            if ((new Date().valueOf()) > (statObj?._meta?.expiredAt ?? (new Date().valueOf()))) {
-                return false
-            }
-            return true
+            return !isUserStatCacheExpired(statObj)
         } else if (!!sessionStorage[ck]) {
             let statObj = JSON.parse(sessionStorage[ck])
-            if ((new Date().valueOf()) > (statObj?._meta?.expiredAt ?? (new Date().valueOf()))) {
-                return false
-            }
+            return !isUserStatCacheExpired(statObj)
+        }
+        return false
+    }
+
+    function isUserStatCacheExpired(userStatObj) {
+        if ((new Date().valueOf()) > (userStatObj?._meta?.expiredAt ?? (new Date().valueOf()))) {
             return true
         }
         return false
@@ -377,6 +383,17 @@
                     }
                 })
             },
+            async deleteItem(key) {
+                const dataBase = await getDataBase()
+                return new Promise(resolve => {
+                    const request = dataBase.transaction(TABLE_NAME, 'readwrite')
+                        .objectStore(TABLE_NAME)
+                        .delete(key)
+                    request.onsuccess = () => {
+                        resolve(request.result === undefined)
+                    }
+                })
+            },
             async keys() {
                 const keys = {} // use as set
                 const dataBase = await getDataBase()
@@ -399,7 +416,31 @@
         }
     }
 
+    async function purgeCache() {
+        if(!INDEXED_DB) return
+        let timing = new Date().valueOf()
+        let dbMgr = getIndexedDBManager()
+        let keys = await dbMgr.keys()
+        let ctr = 0
+        let deleted = []
+
+        console.debug("[BA_FEH] Keys before purging cache: " + JSON.stringify(Object.keys(keys)))
+
+        for (k in keys) {
+            let statObj = await dbMgr.getItem(k)
+            if (!statObj) continue
+            if (isUserStatCacheExpired(statObj)) {
+                await dbMgr.deleteItem(k)
+                ctr++
+                deleted.push(k)
+            }
+        }
+        timing = (new Date().valueOf()) - timing
+        console.debug(`[BA_FEH] The following expired cache keys has been removed in db: ${JSON.stringify(deleted)}`)
+        console.log(`[BA_FEH] Timing for purging cache: ${timing}ms. ${ctr} rows deleted`)
+    }
+
     attachActionButton()
     registerOnClickEvent()
-
+    purgeCache()
 })();
