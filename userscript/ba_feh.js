@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Bangumi Forum Enhance Alpha
-// @version      0.0.5
+// @version      0.0.7
 // @description  I know your (black) history!
 // @updateURL https://openuserjs.org/meta/gyakkun/Bangumi_Forum_Enhance_Alpha.meta.js
 // @downloadURL https://openuserjs.org/install/gyakkun/Bangumi_Forum_Enhance_Alpha.user.js
@@ -149,11 +149,11 @@
     }
 
     function drawRecentPost(postBriefObj) {
-        return `<a class="l inner" href="/${SPACE_TYPE}/topic/${postBriefObj.mid}#post_${postBriefObj.pid}">${postBriefObj.title} <small class="grey">${formatDateline(postBriefObj.dateline)}</small></a>`
+        return `<a class="l inner" target="_blank" rel="nofollow external noopener noreferrer" href="/${SPACE_TYPE}/topic/${postBriefObj.mid}#post_${postBriefObj.pid}">${postBriefObj.title} <small class="grey">${formatDateline(postBriefObj.dateline)}</small></a>`
     }
 
     function drawRecentTopic(topicBriefObj) {
-        return `<a class="l inner" href="/${SPACE_TYPE}/topic/${topicBriefObj.id}">${topicBriefObj.title} <small class="grey">${formatDateline(topicBriefObj.dateline)}</small></a>`
+        return `<a class="l inner" target="_blank" rel="nofollow external noopener noreferrer" href="/${SPACE_TYPE}/topic/${topicBriefObj.id}">${topicBriefObj.title} <small class="grey">${formatDateline(topicBriefObj.dateline)}</small></a>`
     }
 
     function drawSpaceStatData(spaceStatObj) {
@@ -163,7 +163,7 @@
         let postDrawing = drawPostStatData(post)
         return `
             <div>
-                <a href="/${SPACE_TYPE}/${name}" class="l">${displayName}</a>
+                <a href="/${SPACE_TYPE}/${name}" class="l" target="_blank" rel="nofollow external noopener noreferrer">${displayName}</a>
                 <span class="tip">帖子:</span>
                     ${postDrawing}
                 <span class="tip">话题:</span>
