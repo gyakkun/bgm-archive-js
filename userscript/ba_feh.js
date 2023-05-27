@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Bangumi Forum Enhance Alpha
-// @version      0.0.8
+// @version      0.0.9
 // @description  I know your (black) history!
 // @updateURL https://openuserjs.org/meta/gyakkun/Bangumi_Forum_Enhance_Alpha.meta.js
 // @downloadURL https://openuserjs.org/install/gyakkun/Bangumi_Forum_Enhance_Alpha.user.js
@@ -76,6 +76,10 @@
                     <div id="ba-feh-like-stat-${postId}-${username}">
                         <span class="tip">收到贴贴:</span>
                         ${drawFaceGrid(userStatObj.likeStat)}
+                    </div>
+                    <div id="ba-feh-like-stat-${postId}-${username}">
+                        <span class="tip">送出贴贴:</span>
+                        ${drawFaceGrid(userStatObj.likeRevStat)}
                     </div>
                     <div id="ba-feh-space-stat-${postId}-${username}">
                         <span class="tip">空间统计:</span>
