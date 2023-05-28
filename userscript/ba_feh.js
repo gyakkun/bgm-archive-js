@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Bangumi Forum Enhance Alpha
-// @version      0.0.9
+// @version      0.0.11
 // @description  I know your (black) history!
 // @updateURL https://openuserjs.org/meta/gyakkun/Bangumi_Forum_Enhance_Alpha.meta.js
 // @downloadURL https://openuserjs.org/install/gyakkun/Bangumi_Forum_Enhance_Alpha.user.js
@@ -15,34 +15,38 @@
     const BA_FEH_API_URL = "https://bgm.nyamori.moe/forum-enhance/query"
     const BA_FEH_CACHE_PREFIX = "ba_feh_" + SPACE_TYPE + "_" // + username
     const FACE_KEY_GIF_MAPPING = {
-        0: "44",
-        140: "101",
-        80: "41",
-        54: "15",
-        85: "46",
-        104: "65",
-        88: "49",
-        62: "23",
-        79: "40",
-        53: "14",
-        122: "83",
-        92: "53",
-        118: "79",
-        141: "102",
-        90: "51",
-        76: "37",
-        60: "21",
-        128: "89",
-        47: "08",
-        68: "29",
-        137: "98",
-        132: "93"
+        "0": "44",
+        "140": "101",
+        "80": "41",
+        "54": "15",
+        "85": "46",
+        "104": "65",
+        "88": "49",
+        "62": "23",
+        "79": "40",
+        "53": "14",
+        "122": "83",
+        "92": "53",
+        "118": "79",
+        "141": "102",
+        "90": "51",
+        "76": "37",
+        "60": "21",
+        "128": "89",
+        "47": "08",
+        "68": "29",
+        "137": "98",
+        "132": "93"
     }
-    const SPACE_ACTIO_BUTTON_WORDING = {
+    const SPACE_ACTION_BUTTON_WORDING = {
         "group": "小组统计",
         "subject": "条目统计"
     };
 
+    attachActionButton()
+    registerOnClickEvent()
+    purgeCache()
+    addStyleForTopPost()
 
     function getPostDivList() {
         return $("div[id^='post_'")
@@ -63,7 +67,7 @@
 
     function drawWrapper(username, postId, userStatObj) {
         return `
-            <div id="ba-feh-wrapper-${postId}-${username}" class="subject_tag_section" style="margin: 1em;float: inline-block">
+            <div id="ba-feh-wrapper-${postId}-${username}" class="subject_tag_section" style="margin: 1em;">
                 <div>
                     <div id="ba-feh-post-stat-${postId}-${username}">
                         <span class="tip">帖子统计:</span>
@@ -77,7 +81,7 @@
                         <span class="tip">收到贴贴:</span>
                         ${drawFaceGrid(userStatObj.likeStat)}
                     </div>
-                    <div id="ba-feh-like-stat-${postId}-${username}">
+                    <div id="ba-feh-like-rev-stat-${postId}-${username}">
                         <span class="tip">送出贴贴:</span>
                         ${drawFaceGrid(userStatObj.likeRevStat)}
                     </div>
@@ -100,8 +104,8 @@
     function drawActionButton(username, postId) {
         return `
         <div class="action">
-            <a href="javascript:void(0);" class="icon" title="${SPACE_ACTIO_BUTTON_WORDING[SPACE_TYPE]}">
-                <span data-dropped="false" class="ico" id="ba-feh-action-btn-${postId}-${username}" style="text-indent: 0px">▼</span><span class="title">${SPACE_ACTIO_BUTTON_WORDING[SPACE_TYPE]}</span>
+            <a href="javascript:void(0);" class="icon" title="${SPACE_ACTION_BUTTON_WORDING[SPACE_TYPE]}">
+                <span data-dropped="false" class="ico" id="ba-feh-action-btn-${postId}-${username}" style="text-indent: 0px">▼</span><span class="title">${SPACE_ACTION_BUTTON_WORDING[SPACE_TYPE]}</span>
             </a>
         </div>
         `
@@ -217,7 +221,7 @@
             `
         }
         return `
-            <div class="likes_grid">
+            <div class="likes_grid" style="float: none;">
                 ${inner}
             </div>
             `
@@ -422,7 +426,7 @@
     }
 
     async function purgeCache() {
-        if(!INDEXED_DB) return
+        if (!INDEXED_DB) return
         let timing = new Date().valueOf()
         let dbMgr = getIndexedDBManager()
         let keys = await dbMgr.keys()
@@ -445,7 +449,13 @@
         console.log(`[BA_FEH] Timing for purging cache: ${timing}ms. ${ctr} rows deleted`)
     }
 
-    attachActionButton()
-    registerOnClickEvent()
-    purgeCache()
+    function addStyleForTopPost() {
+        let topPostStyle = document.createElement('style');
+        topPostStyle.innerHTML = `
+            .postTopic div[id^='ba-feh-wrapper-'] {
+                float: right;
+            }
+        `
+        document.head.appendChild(topPostStyle);
+    }
 })();
