@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Bangumi Forum Enhance Alpha
-// @version      0.0.11
+// @version      0.0.12
 // @description  I know your (black) history!
 // @updateURL https://openuserjs.org/meta/gyakkun/Bangumi_Forum_Enhance_Alpha.meta.js
 // @downloadURL https://openuserjs.org/install/gyakkun/Bangumi_Forum_Enhance_Alpha.user.js
@@ -12,7 +12,8 @@
 (function () {
     const INDEXED_DB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB
     const SPACE_TYPE = document.location.pathname.split("/")[1]
-    const BA_FEH_API_URL = "https://bgm.nyamori.moe/forum-enhance/query"
+    // const BA_FEH_API_URL = "https://bgm.nyamori.moe/forum-enhance/query"
+    const BA_FEH_API_URL = "http://localhost:5926/forum-enhance/query"
     const BA_FEH_CACHE_PREFIX = "ba_feh_" + SPACE_TYPE + "_" // + username
     const FACE_KEY_GIF_MAPPING = {
         "0": "44",
@@ -74,7 +75,7 @@
                         ${drawPostStatData(userStatObj.postStat)}
                     </div>
                     <div id="ba-feh-topic-stat-${postId}-${username}">
-                        <span class="tip">话题统计:</span>
+                        <span class="tip">主题统计:</span>
                         ${drawTopicStatData(userStatObj.topicStat)}
                     </div>
                     <div id="ba-feh-like-stat-${postId}-${username}">
@@ -95,6 +96,8 @@
                         <br/>
                         <span>最近回复:</span>
                         ${drawRecentPostSection(userStatObj.recentActivities.post)}
+                        <span>送出贴贴:</span>
+                        ${drawRecentLikeRevSection(userStatObj.recentActivities.likeRev)}
                     </div>
                 </div>
             </div>
@@ -156,6 +159,21 @@
         `
     }
 
+    function drawRecentLikeRevSection(recentLikeRevObjList) {
+        if (recentLikeRevObjList.length == 0) {
+            return `<span>N/A</span>`
+        }
+        let inner = ""
+        for (t of recentLikeRevObjList) {
+            inner += drawRecentLikeRev(t)
+        }
+        return `
+            <div class="subject_tag_section">
+                ${inner}
+            </div>
+        `
+    }
+
     function drawRecentPost(postBriefObj) {
         return `<a class="l inner" target="_blank" rel="nofollow external noopener noreferrer" href="/${SPACE_TYPE}/topic/${postBriefObj.mid}#post_${postBriefObj.pid}">${postBriefObj.title} <small class="grey">${formatDateline(postBriefObj.dateline)}</small></a>`
     }
@@ -164,18 +182,46 @@
         return `<a class="l inner" target="_blank" rel="nofollow external noopener noreferrer" href="/${SPACE_TYPE}/topic/${topicBriefObj.id}">${topicBriefObj.title} <small class="grey">${formatDateline(topicBriefObj.dateline)}</small></a>`
     }
 
+    function drawRecentLikeRev(likeRevBrief) {
+        let likeRevObjListHtml = ""
+        for (l of likeRevBrief.likeRevList) {
+            // <a target="_blank" rel="nofollow external noopener noreferrer"
+            likeRevObjListHtml += `
+                <a target="_blank" rel="nofollow external noopener noreferrer" 
+                    href="/${SPACE_TYPE}/topic/${likeRevBrief.mid}#post_${l.pid}">
+                    <img style="width: 18px;height: 18px;" src="/img/smiles/tv/${FACE_KEY_GIF_MAPPING[l.faceKey]}.gif"></img>
+                </a>
+            `
+        }
+        return `<p><a class="l inner" target="_blank" rel="nofollow external noopener noreferrer" 
+                        href="/${SPACE_TYPE}/topic/${likeRevBrief.mid}">
+                        ${likeRevBrief.title}
+                        <small class="grey">
+                        ${formatDateline(likeRevBrief.dateline)}
+                        </small>
+                </a><small class="grey">:</small>${likeRevObjListHtml}</p>`
+    }
+
     function drawSpaceStatData(spaceStatObj) {
-        let { name, displayName, topic, post } = spaceStatObj
+        let { name, displayName, topic, post, like, likeRev } = spaceStatObj
+        let isNameTooLong = displayName.length > 10
         displayName = displayName.substring(0, Math.min(10, displayName.length))
+        if (isNameTooLong) displayName += "..."
         let topicDrawing = drawTopicStatData(topic)
         let postDrawing = drawPostStatData(post)
+        let likeRevDrawing = drawLikeStatData(likeRev)
+        let likeDrawing = drawLikeStatData(like)
         return `
             <div>
                 <a href="/${SPACE_TYPE}/${name}" class="l" target="_blank" rel="nofollow external noopener noreferrer">${displayName}</a>
                 <span class="tip">帖子:</span>
                     ${postDrawing}
-                <span class="tip">话题:</span>
+                <span class="tip">主题:</span>
                     ${topicDrawing}
+                <span class="tip">送出贴贴:</span>
+                    ${likeRevDrawing}
+                <span class="tip">收到贴贴:</span>
+                    ${likeDrawing}
             </div>
         `
     }
@@ -199,6 +245,14 @@
                 ${topicStatObj.silent > 0 ? `/<span style="color: rgb(255, 145, 0);;">${topicStatObj.silent}(S)</span>` : ""}
                 ${topicStatObj.closed > 0 ? `/<span style="color: rgb(164, 75, 253);">${topicStatObj.closed}(C)</span>` : ""}
                 ${topicStatObj.reopen > 0 ? `/<span style="color: rgb(53, 188, 134);">${topicStatObj.reopen}(R)</span>` : ""}
+            </small>
+        `
+    }
+
+    function drawLikeStatData(likeStatForSpaceObj) {
+        return `
+            <small class="grey">
+                ${likeStatForSpaceObj.total}(T)
             </small>
         `
     }
