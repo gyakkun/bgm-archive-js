@@ -12,8 +12,7 @@
 (function () {
     const INDEXED_DB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB
     const SPACE_TYPE = document.location.pathname.split("/")[1]
-    // const BA_FEH_API_URL = "https://bgm.nyamori.moe/forum-enhance/query"
-    const BA_FEH_API_URL = "http://localhost:5926/forum-enhance/query"
+    const BA_FEH_API_URL = "https://bgm.nyamori.moe/forum-enhance/query"
     const BA_FEH_CACHE_PREFIX = "ba_feh_" + SPACE_TYPE + "_" // + username
     const FACE_KEY_GIF_MAPPING = {
         "0": "44",
@@ -96,7 +95,7 @@
                         <br/>
                         <span>最近回复:</span>
                         ${drawRecentPostSection(userStatObj.recentActivities.post)}
-                        <span>送出贴贴:</span>
+                        <span>最近送出贴贴:</span>
                         ${drawRecentLikeRevSection(userStatObj.recentActivities.likeRev)}
                     </div>
                 </div>
