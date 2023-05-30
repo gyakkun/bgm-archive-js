@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Bangumi Deleted Post Alpha
-// @version      0.0.2
+// @version      0.0.3
 // @description  Why you delete it!
 // @updateURL https://openuserjs.org/meta/gyakkun/Bangumi_Deleted_Post_Alpha.meta.js
 // @downloadURL https://openuserjs.org/install/gyakkun/Bangumi_Deleted_Post_Alpha.user.js
@@ -14,9 +14,12 @@
     const BA_DP_API_URL = "https://bgm.nyamori.moe/forum-enhance/deleted_post"
     const SPACE_ACTION_BUTTON_WORDING = "查看删除内容"
 
+    attachActionButton()
+    registerOnClickEvent()
+
     function getTopicId() {
         let pathSplitArr = document.location.pathname.split("/")
-        let last = pathSplitArr[pathSplitArr.length-1]
+        let last = pathSplitArr[pathSplitArr.length - 1]
         last = last.split(/[^0-9]/)[0]
         return last
     }
@@ -99,7 +102,7 @@
         })
     }
 
-    async function getDeletedPost(postId){
+    async function getDeletedPost(postId) {
         let type = SPACE_TYPE
         let topicId = getTopicId()
         let postDiv = getPostDiv(postId)
@@ -107,21 +110,22 @@
         console.debug(`[ba_dp] contentDiv ${contentDiv.html()}`)
         console.log(`[ba_dp] ${type} - ${topicId} - ${postId}`)
         await fetch(`${BA_DP_API_URL}/${type}/${topicId}/${postId}`)
-            .then(res=>{
-            if(res.status / 100 !=2){
-                console.warn(`[ba_dp] status ${res.status}`)
-                return "(bgm-archive 未收录)"
-            }
-            return res.text()
-        }).then(t=>{
-            console.debug(`[ba_dp] ${t}`)
-            contentDiv.html(t)
-        }).catch(err=>{
-            console.error(`[ba_dp] Exception ${err}`)
-            contentDiv.html("(发生错误 请稍后再试)")
-        })
+            .then(res => {
+                if (res.status / 100 != 2) {
+                    console.warn(`[ba_dp] status ${res.status}`)
+                    contentDiv.html("(bgm-archive 未收录)")
+                    return new Promise(() => { })
+                }
+                return res.text()
+            }).then(t => {
+                console.debug(`[ba_dp] ${t}`)
+                postDiv.removeClass("reply_collapse")
+                postDiv.removeClass("sub_reply_collapse")
+                contentDiv.html(t)
+            }).catch(err => {
+                console.error(`[ba_dp] Exception ${err}`)
+                contentDiv.html("(发生错误 请稍后再试)")
+            })
     }
 
-    attachActionButton()
-    registerOnClickEvent()
 })();
