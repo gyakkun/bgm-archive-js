@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Bangumi Deleted Post Alpha
-// @version      0.0.3
+// @version      0.0.4
 // @description  Why you delete it!
 // @updateURL https://openuserjs.org/meta/gyakkun/Bangumi_Deleted_Post_Alpha.meta.js
 // @downloadURL https://openuserjs.org/install/gyakkun/Bangumi_Deleted_Post_Alpha.user.js
@@ -82,7 +82,7 @@
         if (!html.startsWith("<span class=\"tip")) return false
         if (html.indexOf("内容已被用户删除") != -1) return true
         if (html.indexOf("删除了回复") != -1) return true
-        if (html.indexOf("因违反") != -1 && html.indexOf("被删除") != -1) return true
+        if (html.indexOf("违反") != -1 && html.indexOf("被删除") != -1) return true
         return false
     }
 
