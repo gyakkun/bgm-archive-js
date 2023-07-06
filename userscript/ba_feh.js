@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         Bangumi Forum Enhance Alpha
-// @version      0.0.13
+// @version      0.0.16
 // @description  I know your (black) history!
 // @updateURL https://openuserjs.org/meta/gyakkun/Bangumi_Forum_Enhance_Alpha.meta.js
 // @downloadURL https://openuserjs.org/install/gyakkun/Bangumi_Forum_Enhance_Alpha.user.js
 // @copyright gyakkun
-// @include     /^https?:\/\/(bgm\.tv|chii\.in|bangumi\.tv)\/(group|subject)\/topic\/*/
+// @include     /^https?:\/\/(((fast\.)?bgm\.tv)|chii\.in|bangumi\.tv)\/(group|subject)\/topic\/*/
+// @include     /^https?:\/\/(((fast\.)?bgm\.tv)|chii\.in|bangumi\.tv)\/(ep|person|character)\/*/
 // @license MIT
 // ==/UserScript==
 
@@ -39,9 +40,21 @@
         "132": "93"
     }
     const SPACE_ACTION_BUTTON_WORDING = {
-        "group": "小组统计",
-        "subject": "条目统计"
+        "group": "小组讨论统计",
+        "subject": "条目讨论统计",
+        "ep": "章节讨论统计",
+        "character": "角色讨论统计",
+        "person": "人物讨论统计"
     };
+    const SPACE_TOPIC_URL = {
+        "group": "group/topic",
+        "subject": "subject/topic",
+        "ep": "ep",
+        "character": "character",
+        "person": "person"
+    };
+    const SHOULD_DRAW_TOPIC_STAT = SPACE_TOPIC_URL[SPACE_TYPE].endsWith("topic")
+    const SHOULD_DRAW_LIKES_STAT = SPACE_TYPE.length % 3 != 0
 
     attachActionButton()
     registerOnClickEvent()
@@ -73,30 +86,39 @@
                         <span class="tip">帖子统计:</span>
                         ${drawPostStatData(userStatObj.postStat)}
                     </div>
-                    <div id="ba-feh-topic-stat-${postId}-${username}">
-                        <span class="tip">主题统计:</span>
-                        ${drawTopicStatData(userStatObj.topicStat)}
-                    </div>
-                    <div id="ba-feh-like-stat-${postId}-${username}">
-                        <span class="tip">收到贴贴:</span>
-                        ${drawFaceGrid(userStatObj.likeStat)}
-                    </div>
-                    <div id="ba-feh-like-rev-stat-${postId}-${username}">
-                        <span class="tip">送出贴贴:</span>
-                        ${drawFaceGrid(userStatObj.likeRevStat)}
-                    </div>
+                    ${SHOULD_DRAW_TOPIC_STAT ? `
+                        <div id="ba-feh-topic-stat-${postId}-${username}">
+                            <span class="tip">主题统计:</span>
+                            ${drawTopicStatData(userStatObj.topicStat)}
+                        </div>
+                    ` : ""}
+                    ${SHOULD_DRAW_LIKES_STAT ? `
+                        <div id="ba-feh-like-stat-${postId}-${username}">
+                            <span class="tip">收到贴贴:</span>
+                            ${drawFaceGrid(userStatObj.likeStat)}
+                        </div>
+                        <div id="ba-feh-like-rev-stat-${postId}-${username}">
+                            <span class="tip">送出贴贴:</span>
+                            ${drawFaceGrid(userStatObj.likeRevStat)}
+                        </div>
+                    ` : ""}
                     <div id="ba-feh-space-stat-${postId}-${username}">
                         <span class="tip">空间统计:</span>
                         ${drawSpaceStatSection(userStatObj.spaceStat)}
                     </div>
                     <div id="ba-feh-recent-activities-${postId}-${username}">
-                        <span>最近发表:</span>
-                        ${drawRecentTopicSection(userStatObj.recentActivities.topic)}
-                        <br/>
-                        <span>最近回复:</span>
+                        ${SHOULD_DRAW_TOPIC_STAT ? `
+                            <span class="tip">最近发表:</span>
+                            ${drawRecentTopicSection(userStatObj.recentActivities.topic)}
+                            <br/>
+                        ` : ""}
+                        <span class="tip">最近回复:</span>
                         ${drawRecentPostSection(userStatObj.recentActivities.post)}
-                        <span>最近送出贴贴:</span>
-                        ${drawRecentLikeRevSection(userStatObj.recentActivities.likeRev)}
+                        ${SHOULD_DRAW_LIKES_STAT ? `
+                            <br/>
+                            <span class="tip">最近送出贴贴:</span>
+                            ${drawRecentLikeRevSection(userStatObj.recentActivities.likeRev)}
+                        ` : ""}
                     </div>
                 </div>
             </div>
@@ -174,26 +196,37 @@
     }
 
     function drawRecentPost(postBriefObj) {
-        return `<a class="l inner" target="_blank" rel="nofollow external noopener noreferrer" href="/${SPACE_TYPE}/topic/${postBriefObj.mid}#post_${postBriefObj.pid}">${postBriefObj.title} <small class="grey">${formatDateline(postBriefObj.dateline)}</small></a>`
+        return `<a class="l inner" target="_blank"
+                 rel="nofollow external noopener noreferrer"
+                 href="/${SPACE_TOPIC_URL[SPACE_TYPE]}/${postBriefObj.mid}#post_${postBriefObj.pid}"
+                 title="${postBriefObj.spaceDisplayName || ""}"
+        >
+        ${postBriefObj.title} <small class="grey">${formatDateline(postBriefObj.dateline)}</small></a>`
     }
 
     function drawRecentTopic(topicBriefObj) {
-        return `<a class="l inner" target="_blank" rel="nofollow external noopener noreferrer" href="/${SPACE_TYPE}/topic/${topicBriefObj.id}">${topicBriefObj.title} <small class="grey">${formatDateline(topicBriefObj.dateline)}</small></a>`
+        return `<a class="l inner" target="_blank"
+                 rel="nofollow external noopener noreferrer"
+                 href="/${SPACE_TOPIC_URL[SPACE_TYPE]}/${topicBriefObj.id}"
+                 title="${topicBriefObj.spaceDisplayName || ""}"
+        >
+        ${topicBriefObj.title} <small class="grey">${formatDateline(topicBriefObj.dateline)}</small></a>`
     }
 
     function drawRecentLikeRev(likeRevBrief) {
         let likeRevObjListHtml = ""
         for (l of likeRevBrief.likeRevList) {
-            // <a target="_blank" rel="nofollow external noopener noreferrer"
             likeRevObjListHtml += `
-                <a target="_blank" rel="nofollow external noopener noreferrer" 
-                    href="/${SPACE_TYPE}/topic/${likeRevBrief.mid}#post_${l.pid}">
+                <a target="_blank" rel="nofollow external noopener noreferrer"
+                   href="/${SPACE_TOPIC_URL[SPACE_TYPE]}/${likeRevBrief.mid}#post_${l.pid}">
                     <img style="width: 18px;height: 18px;" src="/img/smiles/tv/${FACE_KEY_GIF_MAPPING[l.faceKey]}.gif"></img>
                 </a>
             `
         }
-        return `<p><a class="l inner" target="_blank" rel="nofollow external noopener noreferrer" 
-                        href="/${SPACE_TYPE}/topic/${likeRevBrief.mid}">
+        return `<p><a class="l inner" target="_blank" rel="nofollow external noopener noreferrer"
+                        href="/${SPACE_TOPIC_URL[SPACE_TYPE]}/${likeRevBrief.mid}"
+                        title="${likeRevBrief.spaceDisplayName || ""}"
+                        >
                         ${likeRevBrief.title}
                         <small class="grey">
                         ${formatDateline(likeRevBrief.dateline)}
@@ -212,15 +245,19 @@
         let likeDrawing = drawLikeStatData(like)
         return `
             <div>
-                <a href="/${SPACE_TYPE}/${name}" class="l" target="_blank" rel="nofollow external noopener noreferrer">${displayName}</a>
+                <a href="/${SPACE_TYPE == 'ep' ? 'subject' : SPACE_TYPE}/${name}" class="l" target="_blank" rel="nofollow external noopener noreferrer">${displayName}</a>
                 <span class="tip">帖子:</span>
                     ${postDrawing}
-                <span class="tip">主题:</span>
+                ${SHOULD_DRAW_TOPIC_STAT ? `
+                    <span class="tip">主题:</span>
                     ${topicDrawing}
-                <span class="tip">送出贴贴:</span>
+                ` : ""}
+                ${SHOULD_DRAW_LIKES_STAT ? `
+                    <span class="tip">送出贴贴:</span>
                     ${likeRevDrawing}
-                <span class="tip">收到贴贴:</span>
+                    <span class="tip">收到贴贴:</span>
                     ${likeDrawing}
+                ` : ""}
             </div>
         `
     }
@@ -291,6 +328,7 @@
     }
 
     function attachActionButton() {
+        console.log(`attachActionButton`)
         getPostDivList().each(function () {
             let { username, postId } = getUsernameAndPidOfPostDiv($(this))
             $(this).find("div.post_actions.re_info > div:nth-child(1)").first().after(
@@ -305,7 +343,6 @@
             let pid = that.attr("id").split("-")[4]
             let username = that.attr("id").split("-")[5]
             that.click(async () => {
-                // alert("hi");
                 if (that.attr("data-dropped") === "false") {
                     that.html("*")
                     if ($(`#ba-feh-wrapper-${pid}-${username}`).length > 0) {
