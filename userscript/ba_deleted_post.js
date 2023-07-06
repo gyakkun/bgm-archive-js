@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         Bangumi Deleted Post Alpha
-// @version      0.0.4
+// @version      0.0.5
 // @description  Why you delete it!
 // @updateURL https://openuserjs.org/meta/gyakkun/Bangumi_Deleted_Post_Alpha.meta.js
 // @downloadURL https://openuserjs.org/install/gyakkun/Bangumi_Deleted_Post_Alpha.user.js
 // @copyright gyakkun
-// @include     /^https?:\/\/(bgm\.tv|chii\.in|bangumi\.tv)\/(group|subject)\/topic\/*/
+// @include     /^https?:\/\/(((fast\.)?bgm\.tv)|chii\.in|bangumi\.tv)\/(group|subject)\/topic\/*/
+// @include     /^https?:\/\/(((fast\.)?bgm\.tv)|chii\.in|bangumi\.tv)\/(ep|character|person)\/*/
 // @license MIT
 // ==/UserScript==
 
@@ -53,6 +54,7 @@
         getPostDivList().each(function () {
             let that = $(this)
             let { username, postId } = getUsernameAndPidOfPostDiv(that)
+            console.debug(`${username} - ${postId}`)
             let contentDiv = getContentDivFromPostDiv(that)
             if (!!!contentDiv) return
             if (!judgeDelete(contentDiv.html())) return
@@ -79,7 +81,7 @@
     }
 
     function judgeDelete(html) {
-        if (!html.startsWith("<span class=\"tip")) return false
+        if (!!!html.match(/<span class="tip/)) return false
         if (html.indexOf("内容已被用户删除") != -1) return true
         if (html.indexOf("删除了回复") != -1) return true
         if (html.indexOf("违反") != -1 && html.indexOf("被删除") != -1) return true
@@ -113,11 +115,14 @@
             .then(res => {
                 if (res.status / 100 != 2) {
                     console.warn(`[ba_dp] status ${res.status}`)
-                    contentDiv.html("(bgm-archive 未收录)")
-                    return new Promise(() => { })
+                    return null
                 }
                 return res.text()
             }).then(t => {
+                if (t == null) {
+                    contentDiv.html("(bgm-archive 未收录)")
+                    return
+                }
                 console.debug(`[ba_dp] ${t}`)
                 postDiv.removeClass("reply_collapse")
                 postDiv.removeClass("sub_reply_collapse")
