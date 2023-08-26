@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Bangumi Forum Enhance Alpha
-// @version      0.0.17
+// @version      0.0.18
 // @description  I know your (black) history!
 // @updateURL https://openuserjs.org/meta/gyakkun/Bangumi_Forum_Enhance_Alpha.meta.js
 // @downloadURL https://openuserjs.org/install/gyakkun/Bangumi_Forum_Enhance_Alpha.user.js
@@ -53,7 +53,7 @@
         "ep": "ep",
         "character": "character",
         "person": "person",
-        "blog": "blog"
+        "blog": "user"
     };
     const SHOULD_DRAW_TOPIC_STAT = SPACE_TYPE === 'blog' || SPACE_TOPIC_URL[SPACE_TYPE].endsWith("topic")
     const SHOULD_DRAW_LIKES_STAT = SPACE_TYPE !== 'blog' && SPACE_TYPE.length % 3 != 0
@@ -246,9 +246,15 @@
         let postDrawing = drawPostStatData(post)
         let likeRevDrawing = drawLikeStatData(likeRev)
         let likeDrawing = drawLikeStatData(like)
+        let spacePath = ""
+        switch (SPACE_TYPE) {
+            case "blog": spacePath = "user"; break
+            case "ep": spacePath = "subject"; break
+            default: spacePath = SPACE_TYPE
+        }
         return `
             <div>
-                <a href="/${SPACE_TYPE == 'ep' ? 'subject' : SPACE_TYPE}/${name}" class="l" target="_blank" rel="nofollow external noopener noreferrer">${displayName}</a>
+                <a href="/${spacePath}/${name}" class="l" target="_blank" rel="nofollow external noopener noreferrer">${displayName}</a>
                 <span class="tip">帖子:</span>
                     ${postDrawing}
                 ${SHOULD_DRAW_TOPIC_STAT ? `
