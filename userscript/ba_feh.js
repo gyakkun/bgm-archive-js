@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         Bangumi Forum Enhance Alpha
-// @version      0.0.16
+// @version      0.0.17
 // @description  I know your (black) history!
 // @updateURL https://openuserjs.org/meta/gyakkun/Bangumi_Forum_Enhance_Alpha.meta.js
 // @downloadURL https://openuserjs.org/install/gyakkun/Bangumi_Forum_Enhance_Alpha.user.js
 // @copyright gyakkun
 // @include     /^https?:\/\/(((fast\.)?bgm\.tv)|chii\.in|bangumi\.tv)\/(group|subject)\/topic\/*/
-// @include     /^https?:\/\/(((fast\.)?bgm\.tv)|chii\.in|bangumi\.tv)\/(ep|person|character)\/*/
+// @include     /^https?:\/\/(((fast\.)?bgm\.tv)|chii\.in|bangumi\.tv)\/(ep|person|character|blog)\/*/
 // @license MIT
 // ==/UserScript==
 
@@ -44,17 +44,19 @@
         "subject": "条目讨论统计",
         "ep": "章节讨论统计",
         "character": "角色讨论统计",
-        "person": "人物讨论统计"
+        "person": "人物讨论统计",
+        "blog": "日志发言统计"
     };
     const SPACE_TOPIC_URL = {
         "group": "group/topic",
         "subject": "subject/topic",
         "ep": "ep",
         "character": "character",
-        "person": "person"
+        "person": "person",
+        "blog": "blog"
     };
-    const SHOULD_DRAW_TOPIC_STAT = SPACE_TOPIC_URL[SPACE_TYPE].endsWith("topic")
-    const SHOULD_DRAW_LIKES_STAT = SPACE_TYPE.length % 3 != 0
+    const SHOULD_DRAW_TOPIC_STAT = SPACE_TYPE === 'blog' || SPACE_TOPIC_URL[SPACE_TYPE].endsWith("topic")
+    const SHOULD_DRAW_LIKES_STAT = SPACE_TYPE !== 'blog' && SPACE_TYPE.length % 3 != 0
 
     attachActionButton()
     registerOnClickEvent()
@@ -75,6 +77,7 @@
     function getAllUsernameSet() {
         var set = {}
         getPostDivList().each(function () { set[$(this).attr("data-item-user")] = null })
+        if (SPACE_TYPE === 'blog') set[getBlogAuthorUsername()] = null
         return set
     }
 
@@ -328,13 +331,27 @@
     }
 
     function attachActionButton() {
-        console.log(`attachActionButton`)
+        console.debug(`[BA_FEH] attaching action button`)
         getPostDivList().each(function () {
             let { username, postId } = getUsernameAndPidOfPostDiv($(this))
             $(this).find("div.post_actions.re_info > div:nth-child(1)").first().after(
                 drawActionButton(username, postId)
             )
         })
+        if (SPACE_TYPE === 'blog') {
+            let username = getBlogAuthorUsername()
+            let postId = "n" + window.location.pathname.split("/")[2]
+            let reInfoSmallSelector = "#columnA > div.re_info > small"
+            let topReInfoSelector = "#columnA > div.re_info"
+            $(topReInfoSelector).addClass("post_actions")
+            $(reInfoSmallSelector).after(drawActionButton(username, postId))
+        }
+    }
+
+    function getBlogAuthorUsername() {
+        let authorAvatarSelecter = "#pageHeader > h1 > span > a.avatar.l"
+        let username = $(authorAvatarSelecter).attr("href").split("/")[2]
+        return username
     }
 
     function registerOnClickEvent() {
@@ -356,6 +373,8 @@
                             $(`#post_${pid} > div.inner > div > div.message`).append(baFehWrapper)
                         } else if ($(`#post_${pid} > div.inner > div.cmt_sub_content`).length > 0) {
                             $(`#post_${pid} > div.inner > div.cmt_sub_content`).after(baFehWrapper)
+                        } else if (SPACE_TYPE === 'blog' && pid.startsWith("n")) {
+                            $("#viewEntry").after(baFehWrapper)
                         } else {
                             console.error(`[BA_FEH] No element to mount ba_feh wrapper for postId-${pid}!`)
                         }
@@ -431,7 +450,8 @@
     }
 
     function formatDateline(dateline /* epoch seconds */) {
-        let d = new Date(dateline * 1000)
+        let msWithOffset = 1000 * (dateline - new Date().getTimezoneOffset(/* minutes */) * 60)
+        let d = new Date(msWithOffset)
         let [year, month, day] = d.toISOString().split("T")[0].split("-")
         return `${year.substring(2)}${month}${day}`
     }
