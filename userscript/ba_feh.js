@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Bangumi Forum Enhance Alpha
-// @version      0.0.18
+// @version      0.0.19
 // @description  I know your (black) history!
 // @updateURL https://openuserjs.org/meta/gyakkun/Bangumi_Forum_Enhance_Alpha.meta.js
 // @downloadURL https://openuserjs.org/install/gyakkun/Bangumi_Forum_Enhance_Alpha.user.js
@@ -53,7 +53,7 @@
         "ep": "ep",
         "character": "character",
         "person": "person",
-        "blog": "user"
+        "blog": "blog"
     };
     const SHOULD_DRAW_TOPIC_STAT = SPACE_TYPE === 'blog' || SPACE_TOPIC_URL[SPACE_TYPE].endsWith("topic")
     const SHOULD_DRAW_LIKES_STAT = SPACE_TYPE !== 'blog' && SPACE_TYPE.length % 3 != 0
