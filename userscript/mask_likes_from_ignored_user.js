@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Mask Likes from Ignored Users
-// @version      0.0.5
+// @version      0.0.6
 // @description  I don't like your likes!
 // @updateURL https://openuserjs.org/meta/gyakkun/Mask_Likes_from_Ignored_Users.meta.js
 // @downloadURL https://openuserjs.org/install/gyakkun/Mask_Likes_from_Ignored_Users.user.js
@@ -28,14 +28,16 @@
 
     // Homepage timeline 
     const tmlContent = document.getElementById("tmlContent");
-    const tmlCb = function (mutationsList, observer) {
-        if (typeof data_likes_list === 'undefined') return
-        console.debug("[mlfiu] Timeline reload detected. Going to mask likes from ignored users.")
-        maskIt()
-        chiiLib.likes.init()
-    };
-    const tmlObserver = new MutationObserver(tmlCb);
-    tmlObserver.observe(tmlContent, { childList: true });
+    if (tmlContent != null) {
+        const tmlCb = function (mutationsList, observer) {
+            if (typeof data_likes_list === 'undefined') return
+            console.debug("[mlfiu] Timeline reload detected. Going to mask likes from ignored users.")
+            maskIt()
+            chiiLib.likes.init()
+        };
+        const tmlObserver = new MutationObserver(tmlCb);
+        tmlObserver.observe(tmlContent, { childList: true });
+    }
 
     function maskIt() {
         let origDataIgnoreUsers = JSON.parse(JSON.stringify(data_ignore_users))
