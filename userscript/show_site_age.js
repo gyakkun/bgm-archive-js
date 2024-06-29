@@ -3,7 +3,7 @@
 // @author        gyakkun
 // @description   How old are you?
 // @license       MIT
-// @version       0.0.240629
+// @version       0.0.240630
 // @match        *://bangumi.tv/*
 // @match        *://bgm.tv/*
 // @match        *://chii.in/*
@@ -14,7 +14,21 @@
 
 (function () {
   //'use strict';
+  const VER = "240630"
   const PATH = window.location.pathname
+
+  //URLs
+  const THREAD_URL = /\/(ep|blog|subject|group|character|person|(index\/[0-9]+\/comments))/
+
+  //Selectors
+  const THREAD_AVATAR_SELECTOR = "div[id^='post_'] > a.avatar "
+
+  //Regexes
+  const USERNAME_REG = /user\/(.+)/
+  const AVATAR_UID_REG = /pic\/user\/.+\/\d+\/\d+\/\d+\/(\d+)\.jpg/
+
+  if (PATH.match(THREAD_URL) === null) return
+
   const UID_JOIN_DATE_MTX = [
     [1, "080618"],
     [10, "080713"],
@@ -214,23 +228,13 @@
     [882500, "240609"]
   ]
 
-  //URLs
-  const THREAD_URL = /\/(ep|blog|subject|group|character|person|(index\/[0-9]+\/comments))/
 
-  //Selectors
-  const THREAD_AVATAR_SELECTOR = "div[id^='post_'] > a.avatar "
-
-  //Regexes
-  const USERNAME_REG = /user\/(.+)/
-  const AVATAR_UID_REG = /pic\/user\/.+\/\d+\/\d+\/\d+\/(\d+)\.jpg/
-
-  const ceiling = function (mtx, target) {
+  const Ceiling = function (mtx, target) {
     let totalLen = mtx.length
     let lo = 0,
       hi = totalLen - 1
     while (lo < hi) {
       let mid = Math.floor(lo + (hi - lo) / 2)
-      // console.log("mid" + mid)
       if (mtx[mid][0] >= target) {
         hi = mid
       }
@@ -240,6 +244,22 @@
     }
     if (mtx[lo][0] < target) return -1
     return lo
+  }
+
+  const SixDigitDateStrLiteralToDate = function (sixDigitDateStrLiteral) {
+    let iso8601Str = `20${sixDigitDateStrLiteral.substring(0, 2)
+      }-${sixDigitDateStrLiteral.substring(2, 4)
+      }-${sixDigitDateStrLiteral.substring(4)
+      }T00:08:00.000Z`
+    return new Date(iso8601Str)
+  }
+
+  const DateDeltaToYearMonth = function (dateDeltaMs, ceiling = false) {
+    let delta = Math.max(0, dateDeltaMs)
+    let roundFun = ceiling ? Math.ceil : Math.floor
+    let year = roundFun(delta / 1000 / 86400 / 365)
+    let month = roundFun((delta - year * 1000 * 86400 * 365) / 1000 / 86400 / 30)
+    return [year, month]
   }
 
   const ShowUserSiteAge = function () {
@@ -256,30 +276,24 @@
     let isMatch = !!userIdNotNumber.match(AVATAR_UID_REG) && userIdNotNumber.match(AVATAR_UID_REG).length > 0
     if (!isMatch && isNaN(uidFromUsn)) return
     let userId = isMatch ? Number(userIdNotNumber.match(AVATAR_UID_REG)[1]) : uidFromUsn
-    let ceilingIdIdx = ceiling(UID_JOIN_DATE_MTX, userId)
+    let ceilingIdIdx = Ceiling(UID_JOIN_DATE_MTX, userId)
     let tip = ""
     if (ceilingIdIdx == -1) {
-      tip = " (最近加入)"
+      let deltaMs = Date.now().valueOf() - SixDigitDateStrLiteralToDate(VER).valueOf()
+      let [_, month] = DateDeltaToYearMonth(deltaMs, true)
+      tip = ` (最近${Math.max(1, month)}个月加入)`
     } else {
       let closestDateLiteral = UID_JOIN_DATE_MTX[ceilingIdIdx][1]
-      let iso8601Str = `20${closestDateLiteral.substring(0, 2)
-        }-${closestDateLiteral.substring(2, 4)
-        }-${closestDateLiteral.substring(4)
-        }T00:08:00.000Z`
-      let dateVal = new Date(iso8601Str).valueOf()
-      let dateDelta = new Date().valueOf() - dateVal
-      let year = Math.floor(dateDelta / 1000 / 86400 / 365)
-      let month = Math.floor((dateDelta - year * 1000 * 86400 * 365) / 1000 / 86400 / 30)
+      let theDate = SixDigitDateStrLiteralToDate(closestDateLiteral)
+      let deltaMs = Date.now().valueOf() - theDate.valueOf()
+      let [year, month] = DateDeltaToYearMonth(deltaMs)
       if (year == 0 && month == 0) {
-        tip = " (最近加入)"
-      }
-      else if (year == 0) {
+        tip = " (最近1个月加入)"
+      } else if (year == 0) {
         tip = " (" + month + "月前加入)"
-      }
-      else if (month == 0) {
+      } else if (month == 0) {
         tip = " (" + year + "年前加入)"
-      }
-      else {
+      } else {
         tip = " (" + year + "年" + month + "月前加入)"
       }
     }
@@ -294,8 +308,6 @@
     }
   }
 
-  if (PATH.match(THREAD_URL) !== null) {
-    $(THREAD_AVATAR_SELECTOR).each(ShowUserSiteAge)
-  }
+  $(THREAD_AVATAR_SELECTOR).each(ShowUserSiteAge)
 
 })()
