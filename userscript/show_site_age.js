@@ -3,7 +3,7 @@
 // @author        gyakkun
 // @description   How old are you?
 // @license       MIT
-// @version       0.0.240630
+// @version       0.0.240921
 // @match        *://bangumi.tv/*
 // @match        *://bgm.tv/*
 // @match        *://chii.in/*
@@ -14,7 +14,7 @@
 
 (function () {
   //'use strict';
-  const VER = "240630"
+  const VER = "240921"
   const PATH = window.location.pathname
 
   //URLs
@@ -225,7 +225,10 @@
     [862500, "240312"],
     [868750, "240409"],
     [876250, "240511"],
-    [882500, "240609"]
+    [882500, "240609"],
+    [890000, "240701"],
+    [901250, "240801"],
+    [911500, "240901"]
   ]
 
 
@@ -280,7 +283,7 @@
     let tip = ""
     if (ceilingIdIdx == -1) {
       let deltaMs = Date.now().valueOf() - SixDigitDateStrLiteralToDate(VER).valueOf()
-      let [_, month] = DateDeltaToYearMonth(deltaMs, true)
+      let [_, month] = DateDeltaToYearMonth(deltaMs, false)
       tip = ` (最近${Math.max(1, month)}个月加入)`
     } else {
       let closestDateLiteral = UID_JOIN_DATE_MTX[ceilingIdIdx][1]
