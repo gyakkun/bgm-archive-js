@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Bangumi Forum Enhance Alpha
-// @version      0.0.19
+// @version      0.0.20
 // @description  I know your (black) history!
 // @updateURL https://openuserjs.org/meta/gyakkun/Bangumi_Forum_Enhance_Alpha.meta.js
 // @downloadURL https://openuserjs.org/install/gyakkun/Bangumi_Forum_Enhance_Alpha.user.js
@@ -275,6 +275,8 @@
         return `
             <small class="grey">
                 ${postStatObj.total}(T)
+                ${postStatObj.r7d > 0 ? `/<span>${postStatObj.r7d}(7d)</span>` : ""}
+                ${postStatObj.r30d > 0 ? `/<span>${postStatObj.r30d}(30d)</span>` : ""}
                 ${postStatObj.deleted > 0 ? `/<span style="color: red;">${postStatObj.deleted}(D)</span>` : ""}
                 ${postStatObj.adminDeleted > 0 ? `/<span style="color: yellowgreen;">${postStatObj.adminDeleted}(AD)</span>` : ""}
                 ${postStatObj.violative > 0 ? `/<span style="color: rgb(50, 255, 245);">${postStatObj.violative}(V)</span>` : ""}
@@ -287,6 +289,8 @@
         return `
             <small class="grey">
                 ${topicStatObj.total}(T)
+                ${topicStatObj.r7d > 0 ? `/<span>${topicStatObj.r7d}(7d)</span>` : ""}
+                ${topicStatObj.r30d > 0 ? `/<span>${topicStatObj.r30d}(30d)</span>` : ""}
                 ${topicStatObj.deleted > 0 ? `/<span style="color: red;">${topicStatObj.deleted}(D)</span>` : ""}
                 ${topicStatObj.silent > 0 ? `/<span style="color: rgb(255, 145, 0);;">${topicStatObj.silent}(S)</span>` : ""}
                 ${topicStatObj.closed > 0 ? `/<span style="color: rgb(164, 75, 253);">${topicStatObj.closed}(C)</span>` : ""}
