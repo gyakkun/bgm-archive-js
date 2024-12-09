@@ -3,7 +3,7 @@
 // @author        gyakkun
 // @description   How old are you?
 // @license       MIT
-// @version       0.0.240921
+// @version       0.0.241210
 // @match        *://bangumi.tv/*
 // @match        *://bgm.tv/*
 // @match        *://chii.in/*
@@ -14,7 +14,7 @@
 
 (function () {
   //'use strict';
-  const VER = "240921"
+  const VER = "241210"
   const PATH = window.location.pathname
 
   //URLs
@@ -228,7 +228,10 @@
     [882500, "240609"],
     [890000, "240701"],
     [901250, "240801"],
-    [911500, "240901"]
+    [911500, "240901"],
+    [920000, "241001"],
+    [930750, "241101"],
+    [939425, "241201"]
   ]
 
 
