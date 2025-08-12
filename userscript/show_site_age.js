@@ -25,7 +25,7 @@
 
   //Regexes
   const USERNAME_REG = /user\/(.+)/
-  const AVATAR_UID_REG = /pic\/user\/.+\/\d+\/\d+\/\d+\/(\d+)\.jpg/
+  const AVATAR_UID_REG = /pic\/user\/.+\/\d+\/\d+\/\d+\/(\d+)([_a-zA-Z0-9]+?)\.jpg/
 
   if (PATH.match(THREAD_URL) === null) return
 
