@@ -3,7 +3,7 @@
 // @author        gyakkun
 // @description   How old are you?
 // @license       MIT
-// @version       0.0.250703
+// @version       0.0.250816
 // @match        *://bangumi.tv/*
 // @match        *://bgm.tv/*
 // @match        *://chii.in/*
@@ -14,7 +14,7 @@
 
 (function () {
   //'use strict';
-  const VER = "250703"
+  const VER = "250816"
   const PATH = window.location.pathname
 
   //URLs
@@ -25,7 +25,7 @@
 
   //Regexes
   const USERNAME_REG = /user\/(.+)/
-  const AVATAR_UID_REG = /pic\/user\/.+\/\d+\/\d+\/\d+\/(\d+)([_a-zA-Z0-9]+?)\.jpg/
+  const AVATAR_UID_REG = /pic\/user\/.+\/\d+\/\d+\/\d+\/(\d+)(_[a-zA-Z0-9]+)?\.jpg/
 
   if (PATH.match(THREAD_URL) === null) return
 
@@ -238,7 +238,8 @@
     [988750, "250401"],
     [1010000, "250501"],
     [1033750, "250601"],
-    [1051250, "250701"]
+    [1051250, "250701"],
+    [1081250, "250801"]
   ]
 
 
