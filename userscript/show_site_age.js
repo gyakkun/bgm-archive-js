@@ -3,7 +3,7 @@
 // @author        gyakkun
 // @description   How old are you?
 // @license       MIT
-// @version       0.0.250816
+// @version       0.0.250901
 // @match        *://bangumi.tv/*
 // @match        *://bgm.tv/*
 // @match        *://chii.in/*
@@ -14,7 +14,7 @@
 
 (function () {
   //'use strict';
-  const VER = "250816"
+  const VER = "250901"
   const PATH = window.location.pathname
 
   //URLs
@@ -239,7 +239,8 @@
     [1010000, "250501"],
     [1033750, "250601"],
     [1051250, "250701"],
-    [1081250, "250801"]
+    [1081250, "250801"],
+    [1136000, "250901"]
   ]
 
 
