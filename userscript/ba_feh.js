@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Bangumi Forum Enhance Alpha
-// @version      0.0.20
+// @version      0.0.250906
 // @description  I know your (black) history!
 // @updateURL https://openuserjs.org/meta/gyakkun/Bangumi_Forum_Enhance_Alpha.meta.js
 // @downloadURL https://openuserjs.org/install/gyakkun/Bangumi_Forum_Enhance_Alpha.user.js
@@ -56,7 +56,7 @@
         "blog": "blog"
     };
     const SHOULD_DRAW_TOPIC_STAT = SPACE_TYPE === 'blog' || SPACE_TOPIC_URL[SPACE_TYPE].endsWith("topic")
-    const SHOULD_DRAW_LIKES_STAT = SPACE_TYPE !== 'blog' && SPACE_TYPE.length % 3 != 0
+    const SHOULD_DRAW_LIKES_STAT = SPACE_TYPE.length % 3 != 0
 
     attachActionButton()
     registerOnClickEvent()
@@ -135,6 +135,17 @@
                 <span data-dropped="false" class="ico" id="ba-feh-action-btn-${postId}-${username}" style="text-indent: 0px">▼</span><span class="title">${SPACE_ACTION_BUTTON_WORDING[SPACE_TYPE]}</span>
             </a>
         </div>
+        `
+    }
+
+    function drawActionButtonForBlogMainPost(username, postId) {
+        // FIXME: Need to double click
+        return `
+        <span class="action">
+            <a href="javascript:void(0);" class="thickbox icon" title="${SPACE_ACTION_BUTTON_WORDING[SPACE_TYPE]}">
+                <span class="title" id="ba-feh-action-btn-${postId}-${username}">▼ 统计</span>
+            </a>
+        </span>
         `
     }
 
@@ -351,15 +362,13 @@
         if (SPACE_TYPE === 'blog') {
             let username = getBlogAuthorUsername()
             let postId = "n" + window.location.pathname.split("/")[2]
-            let reInfoSmallSelector = "#columnA > div.re_info > small"
-            let topReInfoSelector = "#columnA > div.re_info"
-            $(topReInfoSelector).addClass("post_actions")
-            $(reInfoSmallSelector).after(drawActionButton(username, postId))
+            let addToMyCollectionActionSpanSelector = "#columnA > div.entry-actions > div.post_actions > span.action:nth-child(1)"
+            $(addToMyCollectionActionSpanSelector).before(drawActionButtonForBlogMainPost(username, postId))
         }
     }
 
     function getBlogAuthorUsername() {
-        let authorAvatarSelecter = "#pageHeader > h1 > span > a.avatar.l"
+        let authorAvatarSelecter = "#viewEntry > div.author.user-card > a"
         let username = $(authorAvatarSelecter).attr("href").split("/")[2]
         return username
     }
@@ -369,9 +378,14 @@
             let that = $(this)
             let pid = that.attr("id").split("-")[4]
             let username = that.attr("id").split("-")[5]
+            let isBlogMainPost = SPACE_TYPE === 'blog' && pid.startsWith("n")
             that.click(async () => {
                 if (that.attr("data-dropped") === "false") {
-                    that.html("*")
+                    if (isBlogMainPost) {
+                        that.html("* 加载")
+                    } else {
+                        that.html("*")
+                    }
                     if ($(`#ba-feh-wrapper-${pid}-${username}`).length > 0) {
                         $(`#ba-feh-wrapper-${pid}-${username}`).show()
                     } else {
@@ -383,16 +397,24 @@
                             $(`#post_${pid} > div.inner > div > div.message`).append(baFehWrapper)
                         } else if ($(`#post_${pid} > div.inner > div.cmt_sub_content`).length > 0) {
                             $(`#post_${pid} > div.inner > div.cmt_sub_content`).after(baFehWrapper)
-                        } else if (SPACE_TYPE === 'blog' && pid.startsWith("n")) {
-                            $("#viewEntry").after(baFehWrapper)
+                        } else if (isBlogMainPost) {
+                            $("#entry_content").after(baFehWrapper)
                         } else {
                             console.error(`[BA_FEH] No element to mount ba_feh wrapper for postId-${pid}!`)
                         }
                     }
-                    that.html("▲")
+                    if (isBlogMainPost) {
+                        that.html("▲ 统计")
+                    } else {
+                        that.html("▲")
+                    }
                     that.attr("data-dropped", "true")
                 } else {
-                    that.html("▼")
+                    if (isBlogMainPost) {
+                        that.html("▼ 统计")
+                    } else {
+                        that.html("▼")
+                    }
                     that.attr("data-dropped", "false")
                     $(`#ba-feh-wrapper-${pid}-${username}`).hide()
                 }
